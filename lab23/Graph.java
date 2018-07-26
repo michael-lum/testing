@@ -243,6 +243,15 @@ public class Graph implements Iterable<Integer> {
             return "(" + from + ", " + to + ", weight = " + weight + ")";
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (getClass() == o.getClass()) {
+                Edge e = (Edge) o;
+                return e.to == to && e.from == from;
+            }
+            return false;
+        }
+
     }
 
     private void generateG1() {
