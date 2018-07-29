@@ -85,8 +85,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             lastNode = n;
         } else if (qName.equals("way")) { // Encountering a new <way...> tag.
             activeState = "way";
-            wayInfo.clear();
-            connections.clear();
+
         } else if (activeState.equals("way") && qName.equals("nd")) { // While looking at a way, found <nd...> tag.
             connections.add(Long.parseLong(attributes.getValue("ref")));
         } else if (activeState.equals("way") && qName.equals("tag")) {
@@ -126,15 +125,16 @@ public class GraphBuildingHandler extends DefaultHandler {
             /* Hint: If you have stored the possible connections for this way, here's your chance to
              * actually connect the nodes together if the way is valid. */
 
-            // System.out.println("Finishing a way...");
             if (validWay) {
                 for (int i = 1; i < connections.size(); i += 1) {
                     long n1 = connections.get(i - 1);
                     long n2 = connections.get(i);
                     g.addEdge(n1, n2, g.distance(n1, n2), wayInfo);
-                    g.addEdge(n2, n1, g.distance(n1, n2), wayInfo);
                 }
             }
+            connections.clear();
+            wayInfo.clear();
+            validWay = false;
         }
     }
 

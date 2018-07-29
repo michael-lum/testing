@@ -6,10 +6,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -21,7 +18,7 @@ import java.util.List;
  * @author Kevin Lowe, Antares Chen, Kevin Lin
  */
 public class GraphDB {
-    HashMap<Long, Node> nodes = new HashMap<>();
+    private HashMap<Long, Node> nodes = new HashMap<>();
     /**
      * This constructor creates and starts an XML parser, cleans the nodes, and prepares the
      * data structures for processing. Modify this constructor to initialize your data structures.
@@ -54,7 +51,7 @@ public class GraphDB {
      * we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
-        ArrayList<Long> toRemove = new ArrayList<>();
+        Set<Long> toRemove = new HashSet<>();
         for (long id : vertices()) {
             if (nodes.get(id).edges.isEmpty()) {
                 toRemove.add(id);
@@ -234,14 +231,15 @@ public class GraphDB {
 
     /**
      * Adds an edge between two vertices of the graph.
-     * @param from The Node that the edge comes from.
-     * @param to The Node that the edge goes to.
+     * @param n1 The Node that the edge comes from.
+     * @param n2 The Node that the edge goes to.
      * @param weight The weight of the edge.
      */
-    void addEdge(long from, long to, double weight, HashMap<String, String> info) {
-        Node n1 = nodes.get(from);
-        Node n2 = nodes.get(to);
-        n1.edges.add(new Edge(weight, n2, info));
+    void addEdge(long n1, long n2, double weight, HashMap<String, String> info) {
+        Node temp1 = nodes.get(n1);
+        Node temp2 = nodes.get(n2);
+        temp1.edges.add(new Edge(weight, temp2, info));
+        temp2.edges.add(new Edge(weight, temp1, info));
     }
 
     static class Node {
