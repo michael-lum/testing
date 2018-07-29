@@ -11,8 +11,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class TestGraphBuildingTiny {
     private static GraphDB graphTiny;
-    private static final String OSM_DB_PATH_TINY =
-            "../library-su18/bearmaps/tiny-clean.osm.xml";
+    private static final String OSM_DB_PATH_TINY = "../library-su18/bearmaps/tiny-clean.osm.xml";
     private static boolean initialized = false;
 
     /**
@@ -32,9 +31,10 @@ public class TestGraphBuildingTiny {
         initialized = true;
     }
 
-    /** All nodes in the tiny-clean file are valid, so the clean method
-     *  should not remove any vertices for this graph, i.e. all 7 nodes
-     *  should survive the cleaning process.
+    /**
+     * All nodes in the tiny-clean file are valid, so the clean method
+     * should not remove any vertices for this graph, i.e. all 7 nodes
+     * should survive the cleaning process.
      */
     @Test
     public void testNodeCountTinyGraph() {
@@ -61,23 +61,23 @@ public class TestGraphBuildingTiny {
     @Test
     public void testLonAndLat() {
         long v = 63L;
-        assertEquals(0.6, graphTiny.lon(v), 0.00001);
-        assertEquals(38.3, graphTiny.lat(v), 0.00001);
+        assertEquals(-122.23, graphTiny.lon(v), 0.00001);
+        assertEquals(37.85, graphTiny.lat(v), 0.00001);
     }
 
     @Test
     public void testDistance() {
         long v = 22L;
         long w = 46L;
-        assertEquals(29.715164376934, graphTiny.distance(v, w), 0.00001);
+        assertEquals(2.974465227907971, graphTiny.distance(v, w), 0.00001);
     }
 
     @Test
     public void testClosest() {
-        double lon = 0.4;
-        double lat = 38.51;
+        double lon = -122.25;
+        double lat = 37.87;
         assertEquals("Make sure you're using the great circle distance, "
-                + "especially if your actual value is 46",
+                        + "especially if your actual value is 46",
                 55L, graphTiny.closest(lon, lat));
     }
 }

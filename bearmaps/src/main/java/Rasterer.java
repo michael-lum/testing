@@ -8,6 +8,7 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
+    public static final int MAX_DEPTH = 7;
 
     public Rasterer() {
     }
