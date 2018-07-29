@@ -7,16 +7,12 @@ import java.util.ArrayList;
  * GraphDB in isolation from all the rest of the parts of this assignment.
  */
 public class GraphDBLauncher {
-    private static final String OSM_DB_PATH = "../library-su18/bearmaps/berkeley-2018-small.osm.xml";
+    private static final String OSM_DB_PATH = "../library-su18/bearmaps/berkeley-2018.osm.xml";
 
     public static void main(String[] args) {
         GraphDB g = new GraphDB(OSM_DB_PATH);
-
-        Iterable<Long> verticesIterable = g.vertices();
-
-        /* Convert iterable to a list. */
-        List<Long> vertices = new ArrayList<Long>();
-        for (long v : verticesIterable) {
+        List<Long> vertices = new ArrayList<>();
+        for (long v : g.vertices()) {
             vertices.add(v);
         }
 

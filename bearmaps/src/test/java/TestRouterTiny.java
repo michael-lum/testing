@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
  * This graph is so small you can draw it out by hand and visually inspect the results!
  */
 public class TestRouterTiny {
-    private static final String OSM_DB_PATH_TINY = "../library-sp18/data/tiny-clean.osm.xml";
+    private static final String OSM_DB_PATH_TINY = "../library-su18/bearmaps/tiny-clean.osm.xml";
     private static GraphDB graphTiny;
     private static boolean initialized = false;
 
@@ -26,7 +26,7 @@ public class TestRouterTiny {
 
     @Test
     public void test22to66() {
-        List<Long> actual = Router.shortestPath(graphTiny, 0.2, 38.2, 0.6, 38.6);
+        List<Long> actual = Router.shortestPath(graphTiny, -122.27, 37.84, -122.23, 37.88);
         List<Long> expected = new ArrayList<>();
         expected.add(22L);
         expected.add(46L);
@@ -36,7 +36,7 @@ public class TestRouterTiny {
 
     @Test
     public void test22to11() {
-        List<Long> actual = Router.shortestPath(graphTiny, 0.2, 38.2, 0.1, 38.1);
+        List<Long> actual = Router.shortestPath(graphTiny, -122.27, 37.84, -122.28,37.83);
         List<Long> expected = new ArrayList<>();
         expected.add(22L);
         expected.add(11L);
@@ -45,7 +45,7 @@ public class TestRouterTiny {
 
     @Test
     public void test41to46() {
-        List<Long> actual = Router.shortestPath(graphTiny, 0.4, 38.1, 0.4, 38.6);
+        List<Long> actual = Router.shortestPath(graphTiny, -122.25, 37.83, -122.25, 37.88);
         List<Long> expected = new ArrayList<>();
         expected.add(41L);
         expected.add(63L);
@@ -56,7 +56,7 @@ public class TestRouterTiny {
 
     @Test
     public void test66to55() {
-        List<Long> actual = Router.shortestPath(graphTiny, 0.6, 38.6, 0.5, 38.5);
+        List<Long> actual = Router.shortestPath(graphTiny, -122.23, 37.88, -122.24, 37.87);
         List<Long> expected = new ArrayList<>();
         expected.add(66L);
         expected.add(63L);
