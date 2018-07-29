@@ -43,52 +43,74 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        // params: lrlon, ullon, w, h, ullat, lrlat
-        // System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        double LRLON = params.get("lrlon");
-        double ULLON = params.get("ullon");
-        double ULLAT = params.get("ullat");
-        double LRLAT = params.get("lrlat");
-        double width = params.get("w");
 
         // Calculate the depth of the raster query.
-        int depth = depth(lonDPP(LRLON, ULLON, width));
+        int depth = depth(lonDPP(params.get("lrlon"), params.get("ullon"), params.get("w")));
+        results.put("depth", depth);
 
         // Find the x and y values for the top left and bottom right image files
-        Map<String, Integer> coords = getborderTiles(depth, ULLON, ULLAT, LRLON, LRLAT);
+        Map<String, Integer> coords = getborderTiles(depth, params.get("ullon"), params.get("ullat"),
+                params.get("lrlon"), params.get("lrlat"));
+
         int lrX = coords.get("x_right");
         int lrY = coords.get("y_right");
         int ulX = coords.get("x_left");
         int ulY = coords.get("y_left");
 
+
+        // Create the 2D Array of Strings with file names.
         int row = lrX - ulX + 1;
         int col = lrY - ulY + 1;
-        String[][] grid = new String[col][row];
-        for (int i = ulY; i < col + ulY; i += 1) {
-            for (int j = ulX; j < row + ulX; j += 1) {
-                grid[i - ulY][j - ulX] = "d" + depth + "_x" + j + "_y" + i + ".png";
+
+        try {
+            String[][] grid = new String[col][row];
+            for (int i = ulY; i < col + ulY; i += 1) {
+                for (int j = ulX; j < row + ulX; j += 1) {
+                    grid[i - ulY][j - ulX] = "d" + depth + "_x" + j + "_y" + i + ".png";
+                }
             }
+            results.put("render_grid", grid);
+            results.put("query_success", true);
+        } catch (IndexOutOfBoundsException e) {
+            results.put("render_grid", null);
+            results.put("query_success", false);
         }
 
+        // Calculate the increments for the X direction and Y direction for the raster bounds.
         double incrX = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / Math.pow(2, depth);
         double incrY = (MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT) / Math.pow(2, depth);
 
-        results.put("render_grid", grid);
-        results.put("depth", depth);
+        // Input values to be returned in results.
         results.put("raster_ul_lon", MapServer.ROOT_ULLON + (ulX * incrX));
         results.put("raster_ul_lat", MapServer.ROOT_ULLAT - (ulY * incrY));
         results.put("raster_lr_lon", MapServer.ROOT_ULLON + ((lrX + 1) * incrX));
         results.put("raster_lr_lat", MapServer.ROOT_ULLAT - ((lrY + 1) * incrY));
-        results.put("query_success", true);
 
         return results;
     }
 
+    /**
+     * Finds the lonDPP for the given coordinates and width.
+     *
+     * @param lrlon Lower right longitude of the provided location.
+     * @param ullon Upper left longitude of the provided location.
+     * @param width Width of the query box that is specified by the user.
+     *
+     * @return Longitudinal Distance Per Pixel for calculating the desired resolution.
+     */
     private static double lonDPP(double lrlon, double ullon, double width) {
         return (lrlon - ullon) / width;
     }
 
+    /**
+     * Calculates the depth of the image.  The depth of the image calculate the greatest lonDPP that is
+     * less than or equal to the requested lonDPP, an image can have a maximum depth of 7.
+     *
+     * @param lonDPP Longitudinal Distance Per Pixel for calculating the desired resolution.
+     *
+     * @return Depth, int which represents which level of zoom to use.
+     */
     private static int depth(double lonDPP) {
         int depth = 0;
         double curr_lonDPP = lonDPP(MapServer.ROOT_LRLON, MapServer.ROOT_ULLON, MapServer.TILE_SIZE);
@@ -99,57 +121,78 @@ public class Rasterer {
         return depth;
     }
 
+    /**
+     * Given a query box, calculates the x and y coordinates for the upper left corner as well as the
+     * lower right corner.  These integers represent the start and stop values for the x and y coordinates
+     * which will be turned into their respective file names.
+     *
+     * @param depth Level of zoom.
+     * @param ref_ullon User requested upper left longitude.
+     * @param ref_ullat User requested upper left latitude.
+     * @param ref_lrlon User requested lower right longitude.
+     * @param ref_lrlat User requested lower right latitude.
+     *
+     * @return A map of results for the front end as specified: <br>
+     * "x_left"  : Integer, the bounding upper left file on the horizontal plane. <br>
+     * "y_left"  : Integer, the bounding upper left file on the vertical plane. <br>
+     * "x_right" : Integer, the bounding lower right file on the horizontal plane. <br>
+     * "y_right" : Integer, the bounding lower right file on the vertical plane. <br>
+     */
     private static Map<String, Integer> getborderTiles(int depth, double ref_ullon, double ref_ullat,
                                                        double ref_lrlon, double ref_lrlat) {
-        Map<String, Integer> res = new HashMap<>();
+        Map<String, Integer> results = new HashMap<>();
+        // Calculate the increments for the X direction and Y direction.
         double incrX = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / Math.pow(2, depth);
         double incrY = (MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT) / Math.pow(2, depth);
 
-        double xl_dist = Math.abs(MapServer.ROOT_ULLON - ref_ullon);
-        double yl_dist = Math.abs(MapServer.ROOT_ULLAT - ref_ullat);
-        double xr_dist = Math.abs(MapServer.ROOT_LRLON - ref_lrlon);
-        double yr_dist = Math.abs(MapServer.ROOT_LRLAT - ref_lrlat);
+        // Calculate the distances between the ROOT coordinates and reference coordinates.
+        double xL_dist = Math.abs(MapServer.ROOT_ULLON - ref_ullon);
+        double yL_dist = Math.abs(MapServer.ROOT_ULLAT - ref_ullat);
+        double xR_dist = Math.abs(MapServer.ROOT_LRLON - ref_lrlon);
+        double yR_dist = Math.abs(MapServer.ROOT_LRLAT - ref_lrlat);
 
-        int x_left = (int) Math.floor(xl_dist / incrX);
-        int y_left = (int) Math.floor(yl_dist / incrY);
-        int x_right = (int) Math.pow(2, depth) - (int) Math.floor(xr_dist / incrX) - 1;
-        int y_right = (int) Math.pow(2, depth) - (int) Math.floor(yr_dist / incrY) - 1;
+        // Based on the difference between ROOT and reference, counts how many "tiles" are needed.
+        int ulX = (int) Math.floor(xL_dist / incrX);
+        int ulY = (int) Math.floor(yL_dist / incrY);
+        int lrX = (int) Math.pow(2, depth) - (int) Math.floor(xR_dist / incrX) - 1;
+        int lrY = (int) Math.pow(2, depth) - (int) Math.floor(yR_dist / incrY) - 1;
 
-        res.put("x_left", x_left);
-        res.put("y_left", y_left);
-        res.put("x_right", x_right);
-        res.put("y_right", y_right);
+        // Input values to be returned in results.
+        results.put("x_left", ulX);
+        results.put("y_left", ulY);
+        results.put("x_right", lrX);
+        results.put("y_right", lrY);
 
-        return res;
+        return results;
     }
 
-//    public static void main(String[] args) {
-//        Rasterer r = new Rasterer();
-//        HashMap<String, Double> params_test = new HashMap<>();
-//        params_test.put("lrlon", -122.24053369025242);
-//        params_test.put("ullon", -122.24163047377972);
-//        params_test.put("w", 892.0);
-//        params_test.put("h", 875.0);
-//        params_test.put("ullat", 37.87655856892288);
-//        params_test.put("lrlat", 37.87548268822065);
-//        r.getMapRaster(params_test);
-//
-//        HashMap<String, Double> params_test1234 = new HashMap<>();
-//        params_test1234.put("lrlon", -122.20908713544797);
-//        params_test1234.put("ullon", -122.3027284165759);
-//        params_test1234.put("w", 305.0);
-//        params_test1234.put("h", 300.0);
-//        params_test1234.put("ullat", 37.88708748276975);
-//        params_test1234.put("lrlat", 37.848731523430196);
-//        r.getMapRaster(params_test1234);
-//
-//        HashMap<String, Double> params_twelve = new HashMap<>();
-//        params_twelve.put("lrlon", -122.2104604264636);
-//        params_twelve.put("ullon", -122.30410170759153);
-//        params_twelve.put("w", 1091.0);
-//        params_twelve.put("h", 566.0);
-//        params_twelve.put("ullat", 37.870213571328854);
-//        params_twelve.put("lrlat", 37.8318576119893);
-//        r.getMapRaster(params_twelve);
-//    }
+    public static void main(String[] args) {
+        Rasterer r = new Rasterer();
+        HashMap<String, Double> params_test = new HashMap<>();
+        params_test.put("lrlon", -122.24053369025242);
+        params_test.put("ullon", -122.24163047377972);
+        params_test.put("w", 892.0);
+        params_test.put("h", 875.0);
+        params_test.put("ullat", 37.87655856892288);
+        params_test.put("lrlat", 37.87548268822065);
+        r.getMapRaster(params_test);
+
+        HashMap<String, Double> params_test1234 = new HashMap<>();
+        params_test1234.put("lrlon", -122.20908713544797);
+        params_test1234.put("ullon", -122.3027284165759);
+        params_test1234.put("w", 305.0);
+        params_test1234.put("h", 300.0);
+        params_test1234.put("ullat", 37.88708748276975);
+        params_test1234.put("lrlat", 37.848731523430196);
+        r.getMapRaster(params_test1234);
+
+        HashMap<String, Double> params_twelve = new HashMap<>();
+        params_twelve.put("lrlon", -122.2104604264636);
+        params_twelve.put("ullon", -122.30410170759153);
+        params_twelve.put("w", 1091.0);
+        params_twelve.put("h", 566.0);
+        params_twelve.put("ullat", 37.870213571328854);
+        params_twelve.put("lrlat", 37.8318576119893);
+        r.getMapRaster(params_twelve);
+    }
 }

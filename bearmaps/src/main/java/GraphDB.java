@@ -7,6 +7,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public class GraphDB {
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
+    HashMap<Long, Node> nodes = new HashMap<>();
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -57,7 +59,16 @@ public class GraphDB {
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
-        // TODO: Your code here.
+        ArrayList<Long> toRemove = new ArrayList<>();
+        for (long id : vertices()) {
+            if (nodes.get(id).edges.isEmpty()) {
+                toRemove.add(id);
+            }
+        }
+
+        for (long id : toRemove) {
+            nodes.remove(id);
+        }
     }
 
     /**
@@ -65,8 +76,7 @@ public class GraphDB {
      * @return An iterable of id's of all vertices in the graph.
      */
     Iterable<Long> vertices() {
-        //YOUR CODE HERE, this currently returns only an empty list.
-        return new ArrayList<Long>();
+        return nodes.keySet();
     }
 
     /**
@@ -75,7 +85,11 @@ public class GraphDB {
      * @return An iterable of the ids of the neighbors of v.
      */
     Iterable<Long> adjacent(long v) {
-        return null;
+        ArrayList<Long> result = new ArrayList<>();
+        for (Edge e : nodes.get(v).edges) {
+            result.add(e.to.id);
+        }
+        return result;
     }
 
     /**
@@ -128,7 +142,20 @@ public class GraphDB {
      * @return The id of the node in the graph closest to the target.
      */
     long closest(double lon, double lat) {
-        return 0;
+        double minDistance = Double.MAX_VALUE;
+        long min = 0L;
+        Node temp = new Node(0L, lon, lat);
+        addNode(0L, temp);
+
+        for (Long id : nodes.keySet()) {
+            if (distance(0L, id) < minDistance && id != 0L) {
+                minDistance = distance(id, 0L);
+                min = id;
+            }
+        }
+
+        nodes.remove(0L);
+        return min;
     }
 
     /**
@@ -137,7 +164,7 @@ public class GraphDB {
      * @return The longitude of the vertex.
      */
     double lon(long v) {
-        return 0;
+        return nodes.get(v).lon;
     }
 
     /**
@@ -146,6 +173,60 @@ public class GraphDB {
      * @return The latitude of the vertex.
      */
     double lat(long v) {
-        return 0;
+        return nodes.get(v).lat;
+    }
+
+    /**
+     * Adds a node to the graph.
+     * @param id The id of the vertex.
+     * @param n The Node object.
+     */
+    void addNode(long id, Node n) {
+        nodes.put(id, n);
+    }
+
+    /**
+     * Adds an edge between two vertices of the graph.
+     * @param from The Node that the edge comes from.
+     * @param to The Node that the edge goes to.
+     * @param weight The weight of the edge.
+     */
+    void addEdge(long from, long to, double weight, HashMap<String, String> info) {
+        Node n1 = nodes.get(from);
+        Node n2 = nodes.get(to);
+        n1.edges.add(new Edge(weight, n2, info));
+    }
+
+    static class Node {
+        long id;
+        double lon;
+        double lat;
+        ArrayList<Edge> edges;
+        HashMap<String, String> extraInfo;
+
+        Node(long id, double lon, double lat) {
+            this.id = id;
+            this.lon = lon;
+            this.lat = lat;
+            edges = new ArrayList<>();
+            extraInfo = new HashMap<>();
+        }
+
+        @Override
+        public String toString() {
+            return id + "";
+        }
+    }
+
+    static class Edge {
+        double weight;
+        Node to;
+        HashMap<String, String> extraInfo;
+
+        Edge(double weight, Node to, HashMap<String, String> extraInfo) {
+            this.weight = weight;
+            this.to = to;
+            this.extraInfo = extraInfo;
+        }
     }
 }
