@@ -43,10 +43,10 @@ public class Router {
             for (Long id : g.adjacent(curr.id)) {
                 GraphDB.Node neighbor = g.getNode(id);
 
-                double distToSource = curr.distToSource + g.getEdge(curr.id, neighbor.id).weight;
-                double priority = distToSource + g.distance(neighbor.id, dest.id);
-                if (distToSource < neighbor.distToSource) {
-                    neighbor.distToSource = distToSource;
+                double newdistToSource = curr.distToSource + g.getEdge(curr.id, neighbor.id).weight;
+                double priority = newdistToSource + g.distance(neighbor.id, dest.id);
+                if (newdistToSource < neighbor.distToSource || !seen.contains(id)) {
+                    neighbor.distToSource = newdistToSource;
                     neighbor.priority = priority;
                 }
                 fringe.add(neighbor);
@@ -54,7 +54,7 @@ public class Router {
         }
         for (int i = steps.size() - 1; i > 0; i -= 1) {
             if (!g.isAdjacent(steps.get(i), steps.get(i - 1))) {
-                steps.remove(i -1);
+                steps.remove(i-1);
             }
         }
 
