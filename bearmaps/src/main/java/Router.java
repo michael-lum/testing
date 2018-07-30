@@ -51,11 +51,14 @@ public class Router {
 
                 double newdistToSource = curr.distToSource + g.getEdge(curr.id, neighbor.id).weight;
                 double priority = newdistToSource + g.distance(neighbor.id, dest.id);
-                if (newdistToSource < neighbor.distToSource || !seen.contains(id) && !fringe.contains(neighbor)) {
+
+                if (newdistToSource < neighbor.distToSource || !seen.contains(id)) {
                     neighbor.distToSource = newdistToSource;
                     neighbor.priority = priority;
+                    fringe.add(neighbor);
+                } else {
+                    fringe.add(neighbor);
                 }
-                fringe.add(neighbor);
             }
         }
         for (int i = steps.size() - 1; i > 0; i -= 1) {
