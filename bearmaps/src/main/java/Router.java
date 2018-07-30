@@ -51,7 +51,7 @@ public class Router {
 
                 double newdistToSource = curr.distToSource + g.getEdge(curr.id, neighbor.id).weight;
                 double priority = newdistToSource + g.distance(neighbor.id, dest.id);
-                if (newdistToSource < neighbor.distToSource || !seen.contains(id)) {
+                if (newdistToSource < neighbor.distToSource || !seen.contains(id) && !fringe.contains(neighbor)) {
                     neighbor.distToSource = newdistToSource;
                     neighbor.priority = priority;
                 }
