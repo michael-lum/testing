@@ -1,4 +1,10 @@
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.LinkedList;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,7 +38,7 @@ public class Router {
 
         while (!fringe.isEmpty()) {
             GraphDB.Node curr = fringe.poll();
-            while(seen.contains(curr.id)) {
+            while (seen.contains(curr.id)) {
                 curr = fringe.poll();
             }
             steps.add(curr.id);
@@ -54,7 +60,7 @@ public class Router {
         }
         for (int i = steps.size() - 1; i > 0; i -= 1) {
             if (!g.isAdjacent(steps.get(i), steps.get(i - 1))) {
-                steps.remove(i-1);
+                steps.remove(i - 1);
             }
         }
 

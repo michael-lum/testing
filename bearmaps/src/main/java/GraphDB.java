@@ -311,7 +311,14 @@ public class GraphDB {
     static class NodeComparator implements Comparator<Node>{
         @Override
         public int compare(Node o1, Node o2) {
-            return Double.compare(o1.priority, o2.priority);
+            if (o1.priority - o2.priority > 0) {
+                return 1;
+            } else if (o1.priority - o2.priority == 0) {
+                return 0;
+            } else {
+                return -1;
+            }
+            //return Double.compare(o1.priority, o2.priority);
         }
     }
 
