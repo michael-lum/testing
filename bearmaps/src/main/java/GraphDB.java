@@ -53,7 +53,7 @@ public class GraphDB {
     private void clean() {
         Set<Long> toRemove = new HashSet<>();
         for (long id : vertices()) {
-            if (nodes.get(id).edges.isEmpty()) {
+            if (getNode(id).edges.isEmpty()) {
                 toRemove.add(id);
             }
         }
@@ -69,7 +69,7 @@ public class GraphDB {
      * @return The longitude of that vertex, or 0.0 if the vertex is not in the graph.
      */
     double lon(long v) {
-        return nodes.get(v).lon;
+        return getNode(v).lon;
     }
 
     /**
@@ -78,7 +78,7 @@ public class GraphDB {
      * @return The latitude of that vertex, or 0.0 if the vertex is not in the graph.
      */
     double lat(long v) {
-        return nodes.get(v).lat;
+        return getNode(v).lat;
     }
 
     /**
@@ -97,10 +97,14 @@ public class GraphDB {
      */
     Iterable<Long> adjacent(long v) {
         ArrayList<Long> result = new ArrayList<>();
-        for (Edge e : nodes.get(v).edges) {
+        for (Edge e : getNode(v).edges) {
             result.add(e.to.id);
         }
         return result;
+    }
+
+    boolean isAdjacent(long v, long w) {
+        return getEdge(v, w) != null;
     }
 
     /**
@@ -229,6 +233,10 @@ public class GraphDB {
         nodes.put(id, n);
     }
 
+    Node getNode(long id) {
+        return nodes.get(id);
+    }
+
     /**
      * Adds an edge between two vertices of the graph.
      * @param n1 The Node that the edge comes from.
@@ -242,10 +250,21 @@ public class GraphDB {
         temp2.edges.add(new Edge(weight, temp1, info));
     }
 
+    Edge getEdge(long from, long to) {
+        for (Edge e : getNode(from).edges) {
+            if (e.to.id == to) {
+                return e;
+            }
+        }
+        return null;
+    }
+
     static class Node {
         long id;
         double lon;
         double lat;
+        double priority;
+        double distToSource;
         ArrayList<Edge> edges;
         HashMap<String, String> extraInfo;
 
@@ -253,8 +272,22 @@ public class GraphDB {
             this.id = id;
             this.lon = lon;
             this.lat = lat;
+            this.priority = 0;
+            this.distToSource = Double.MAX_VALUE;
             edges = new ArrayList<>();
             extraInfo = new HashMap<>();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Node node = (Node) o;
+            return id == node.id;
         }
 
         @Override
@@ -272,6 +305,13 @@ public class GraphDB {
             this.weight = weight;
             this.to = to;
             this.extraInfo = extraInfo;
+        }
+    }
+
+    static class NodeComparator implements Comparator<Node>{
+        @Override
+        public int compare(Node o1, Node o2) {
+            return Double.compare(o1.priority, o2.priority);
         }
     }
 

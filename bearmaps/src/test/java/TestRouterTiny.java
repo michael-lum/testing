@@ -16,7 +16,7 @@ public class TestRouterTiny {
     private static boolean initialized = false;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         if (initialized) {
             return;
         }

@@ -67,12 +67,10 @@ public class GraphBuildingHandler extends DefaultHandler {
      *              available. This tells us which element we're looking at.
      * @param attributes The attributes attached to the element. If there are no attributes, it
      *                   shall be an empty Attributes object.
-     * @throws SAXException Any SAX exception, possibly wrapping another exception.
      * @see Attributes
      */
     @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes)
-            throws SAXException {
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
         if (qName.equals("node")) { // Encountering a new <node...> tag.
             activeState = "node";
 
@@ -115,10 +113,9 @@ public class GraphBuildingHandler extends DefaultHandler {
      *                  processing is not being performed.
      * @param qName The qualified name (with prefix), or the empty string if qualified names are
      *              not available.
-     * @throws SAXException  Any SAX exception, possibly wrapping another exception.
      */
     @Override
-    public void endElement(String uri, String localName, String qName) throws SAXException {
+    public void endElement(String uri, String localName, String qName) {
         if (qName.equals("way")) {
             /* Done looking at a way. (Finished looking at the nodes, speeds, etc.) */
 

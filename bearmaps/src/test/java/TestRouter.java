@@ -19,7 +19,7 @@ public class TestRouter {
     private static GraphDB graph;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         graph = new GraphDB(OSM_DB_PATH);
     }
 

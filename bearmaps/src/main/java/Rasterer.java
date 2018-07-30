@@ -57,7 +57,7 @@ public class Rasterer {
             }
             results.setRenderGrid(grid);
             results.setQuerySuccess(true);
-        } catch (Exception e) {
+        } catch (NegativeArraySizeException e) {
             return RasterResultParams.queryFailed();
         }
 
@@ -88,8 +88,9 @@ public class Rasterer {
     }
 
     /**
-     * Calculates the depth of the image.  The depth of the image calculate the greatest lonDPP that is
-     * less than or equal to the requested lonDPP, an image can have a maximum depth of 7.
+     * Calculates the depth of the image.  The depth of the image calculate the greatest lonDPP
+     * that is less than or equal to the requested lonDPP, an image can have a maximum depth
+     * of 7.
      *
      * @param lonDPP Longitudinal Distance Per Pixel for calculating the desired resolution.
      *
@@ -97,24 +98,24 @@ public class Rasterer {
      */
     private int depth(double lonDPP) {
         int depth = 0;
-        double curr_lonDPP = lonDPP(MapServer.ROOT_LRLON, MapServer.ROOT_ULLON, MapServer.TILE_SIZE);
-        while (curr_lonDPP > lonDPP && depth < MAX_DEPTH) {
-            curr_lonDPP = curr_lonDPP / 2.0;
+        double currlonDPP = MapServer.ROOT_LONDPP;
+        while (currlonDPP > lonDPP && depth < MAX_DEPTH) {
+            currlonDPP = currlonDPP / 2.0;
             depth += 1;
         }
         return depth;
     }
 
     /**
-     * Given a query box, calculates the x and y coordinates for the upper left corner as well as the
-     * lower right corner.  These integers represent the start and stop values for the x and y coordinates
-     * which will be turned into their respective file names.
+     * Given a query box, calculates the x and y coordinates for the upper left corner as well as
+     * the lower right corner.  These integers represent the start and stop values for the x and
+     * y coordinates which will be turned into their respective file names.
      *
      * @param depth Level of zoom.
-     * @param ref_ullon User requested upper left longitude.
-     * @param ref_ullat User requested upper left latitude.
-     * @param ref_lrlon User requested lower right longitude.
-     * @param ref_lrlat User requested lower right latitude.
+     * @param ullon User requested upper left longitude.
+     * @param ullat User requested upper left latitude.
+     * @param lrlon User requested lower right longitude.
+     * @param lrlat User requested lower right latitude.
      *
      * @return A map of results for the front end as specified: <br>
      * "x_left"  : Integer, the bounding upper left file on the horizontal plane. <br>
@@ -122,24 +123,24 @@ public class Rasterer {
      * "x_right" : Integer, the bounding lower right file on the horizontal plane. <br>
      * "y_right" : Integer, the bounding lower right file on the vertical plane. <br>
      */
-    private static Map<String, Integer> getborderTiles(int depth, double ref_ullon, double ref_ullat,
-                                                       double ref_lrlon, double ref_lrlat) {
+    private static Map<String, Integer> getborderTiles(int depth, double ullon, double ullat,
+                                                       double lrlon, double lrlat) {
         Map<String, Integer> results = new HashMap<>();
         // Calculate the increments for the X direction and Y direction.
         double incrX = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / Math.pow(2, depth);
         double incrY = (MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT) / Math.pow(2, depth);
 
         // Calculate the distances between the ROOT coordinates and reference coordinates.
-        double xL_dist = Math.abs(MapServer.ROOT_ULLON - ref_ullon);
-        double yL_dist = Math.abs(MapServer.ROOT_ULLAT - ref_ullat);
-        double xR_dist = Math.abs(MapServer.ROOT_LRLON - ref_lrlon);
-        double yR_dist = Math.abs(MapServer.ROOT_LRLAT - ref_lrlat);
+        double xLdist = Math.abs(MapServer.ROOT_ULLON - ullon);
+        double yLdist = Math.abs(MapServer.ROOT_ULLAT - ullat);
+        double xRdist = Math.abs(MapServer.ROOT_LRLON - lrlon);
+        double yRdist = Math.abs(MapServer.ROOT_LRLAT - lrlat);
 
-        // Based on the difference between ROOT and reference, counts how many "tiles" are needed.
-        int ulX = (int) Math.floor(xL_dist / incrX);
-        int ulY = (int) Math.floor(yL_dist / incrY);
-        int lrX = (int) Math.pow(2, depth) - (int) Math.floor(xR_dist / incrX) - 1;
-        int lrY = (int) Math.pow(2, depth) - (int) Math.floor(yR_dist / incrY) - 1;
+        // Using the distance, counts how many "tiles" are needed.
+        int ulX = (int) Math.floor(xLdist / incrX);
+        int ulY = (int) Math.floor(yLdist / incrY);
+        int lrX = (int) Math.pow(2, depth) - (int) Math.floor(xRdist / incrX) - 1;
+        int lrY = (int) Math.pow(2, depth) - (int) Math.floor(yRdist / incrY) - 1;
 
         // Input values to be returned in results.
         results.put("x_left", ulX);

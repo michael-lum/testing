@@ -26,7 +26,7 @@ public class TestRasterer {
     private static Rasterer rasterer;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         rasterer = new Rasterer();
     }
 

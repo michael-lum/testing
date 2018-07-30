@@ -1,6 +1,4 @@
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,9 +20,48 @@ public class Router {
     public static List<Long> shortestPath(GraphDB g,
                                           double stlon, double stlat,
                                           double destlon, double destlat) {
-        // TODO
-        return Collections.emptyList();
+
+        GraphDB.Node start = g.getNode(g.closest(stlon, stlat));
+        GraphDB.Node dest = g.getNode(g.closest(destlon, destlat));
+
+        Set<Long> seen = new HashSet<>();
+        PriorityQueue<GraphDB.Node> fringe = new PriorityQueue<>(new GraphDB.NodeComparator());
+        LinkedList<Long> steps = new LinkedList<>();
+        fringe.add(start);
+        start.distToSource = 0;
+
+        while (!fringe.isEmpty()) {
+            GraphDB.Node curr = fringe.poll();
+            while(seen.contains(curr.id)) {
+                curr = fringe.poll();
+            }
+            steps.add(curr.id);
+            if (curr.equals(dest)) {
+                break;
+            }
+            seen.add(curr.id);
+            for (Long id : g.adjacent(curr.id)) {
+                GraphDB.Node neighbor = g.getNode(id);
+
+                double distToSource = curr.distToSource + g.getEdge(curr.id, neighbor.id).weight;
+                double priority = distToSource + g.distance(neighbor.id, dest.id);
+                if (distToSource < neighbor.distToSource) {
+                    neighbor.distToSource = distToSource;
+                    neighbor.priority = priority;
+                }
+                fringe.add(neighbor);
+            }
+        }
+        for (int i = steps.size() - 1; i > 0; i -= 1) {
+            if (!g.isAdjacent(steps.get(i), steps.get(i - 1))) {
+                steps.remove(i -1);
+            }
+        }
+
+        return steps;
     }
+
+
 
     /**
      * Given a <code>route</code> of vertex IDs, return a <code>List</code> of
